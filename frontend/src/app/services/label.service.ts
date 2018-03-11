@@ -39,4 +39,24 @@ export class LabelService {
             );
         });
     }
+
+    getValidationResultsForScan(scanId: string, labelsIds: Array<string>) {
+        return new Promise((resolve, reject) => {
+            const payload = {
+                'labels_ids': labelsIds
+            }
+            this.http.post(environment.API_URL + '/validation/' + scanId, payload).toPromise().then(
+                response => {
+                    console.log('LabelsService | getValidationResultsForScan | response: ', response);
+                    const json = response.json();
+                    resolve(json);
+                },
+                error => {
+                    console.log('LabelsService | getValidationResultsForScan | error: ', error);
+                    reject(error);
+                }
+            );
+        });
+    }
+
 }

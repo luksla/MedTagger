@@ -21,9 +21,12 @@ export class ValidationPageComponent implements OnInit {
 
     private static readonly SLICE_BATCH_SIZE = 25;
     @ViewChild(ScanViewerComponent) scanViewer: ScanViewerComponent;
-    label: Label;
-    scan: ScanMetadata;
 
+    scan: ScanMetadata;
+    agreement_ratio: number = 100;
+    labels_used: number = 0;
+    labels_total: number = 0;
+    labels_similarities = [];
 
     constructor(private labelService: LabelService, private scanService: ScanService,
                 private dialogService: DialogService, private location: Location) {
@@ -34,7 +37,11 @@ export class ValidationPageComponent implements OnInit {
 
         this.scanViewer.setSelector(new RectROISelector(this.scanViewer.getCanvas()));
 
-        this.requestSlicesWithLabel();
+        this.scanService.getScanForScanId('c23213a5-3c3d-4801-b713-4ca7720524dc').then((scan: ScanMetadata) => {
+            this.scan = scan;
+            this.requestValidationData();
+        });
+
         this.scanService.validationMaskObservable().subscribe((slice: MarkerSlice) => {
             this.scanViewer.feedData(slice);
         });
@@ -51,9 +58,35 @@ export class ValidationPageComponent implements OnInit {
                         count = count + sliceRequest;
                         sliceRequest = 0;
                     }
-                    this.scanService.requestValidationMask(this.label.scanId, sliceRequest, count);
+                    //this.scanService.requestSlices(scan.scanId, begin, count);
+                    let labels_ids = this.labels_similarities
+                        .filter(function(label) {return label['used_for_generation']})
+                        .map(function(label) {return label['label_id']});
+                    this.scanService.requestValidationMask(this.scan.scanId, labels_ids, sliceRequest, count);
                 });
             }
+        });
+    }
+
+    private requestValidationData() {
+        let labels_ids_for_generation = this.labels_similarities
+            .filter(function(label) {return label['used_for_generation']})
+            .map(function(label) {return label['label_id']});
+        this.labelService.getValidationResultsForScan(this.scan.scanId, labels_ids_for_generation).then((response) => {
+            this.scanViewer.clearData();
+
+            this.agreement_ratio = response['agreement_ratio'];
+            this.labels_similarities = response['labels_similarities'];
+            this.labels_used = this.labels_similarities.filter(function(label) {return label['used_for_generation']}).length;
+            this.labels_total = this.labels_similarities.length;
+
+            let begin = Math.floor(Math.random() * (response['label_end'] - response['label_start'])) + response['label_start'];
+            let count = ValidationPageComponent.SLICE_BATCH_SIZE;
+            let labels_ids = this.labels_similarities
+                .filter(function(label) {return label['used_for_generation']})
+                .map(function(label) {return label['label_id']});
+            //this.scanService.requestSlices(this.scan.scanId, begin, count);
+            this.scanService.requestValidationMask(this.scan.scanId, labels_ids, begin, count);
         });
     }
 
@@ -65,49 +98,26 @@ export class ValidationPageComponent implements OnInit {
         return roiSelections;
     }
 
-    private requestSlicesWithLabel(): void {
-        this.labelService.getRandomLabel(this.rect2DROIConverter).then((label: Label) => {
-            this.label = label;
-            this.scanViewer.setArchivedSelections(this.label.labelSelections);
-
-            this.scanService.getScanForScanId(this.label.scanId).then((scan: ScanMetadata) => {
-                this.scan = scan;
-
-                const indexes: number[] = [];
-                for (let i = 0; i < label.labelSelections.length; i++) {
-                    indexes.push(label.labelSelections[i].sliceIndex);
-                }
-                const begin = indexes[Math.floor((Math.random() * indexes.length))];
-                let count = ValidationPageComponent.SLICE_BATCH_SIZE;
-                if (begin + ValidationPageComponent.SLICE_BATCH_SIZE > this.scan.numberOfSlices) {
-                    count = this.scan.numberOfSlices - begin;
-                }
-                this.scanService.requestValidationMask(this.label.scanId, begin, count);
-            });
-        }).catch((error: Error) => {
-            this.dialogService
-                .openInfoDialog("Error", "Cannot find any selections to validate", "Go back")
-                .afterClosed()
-                .subscribe(() => {
-                    this.location.back();
-                });
-        });
+    public isAtLeastOneLabelSelected() {
+        return this.labels_similarities.filter(function(label) {return label['used_for_generation']}).length != 0;
     }
 
     public markAsValid(): void {
+    /*
         this.labelService.changeStatus(this.label.labelId, 'VALID').then(() => {
             this.skipScan();
         });
+    */
     }
 
     public markAsInvalid(): void {
+    /*
         this.labelService.changeStatus(this.label.labelId, 'INVALID').then(() => {
             this.skipScan();
         });
+    */
     }
 
-    public skipScan(): void {
-        this.scanViewer.clearData();
-        this.requestSlicesWithLabel();
-    }
+    public clearScan(): void {
+            }
 }

@@ -25,23 +25,23 @@ class ValidationPage(Resource):
         labels = scan.labels
 
         if not labels_ids:
-            return {
-                'scan_id': scan_id,
-                'agreement_ratio': None,
-                'labels_similarities': [{
-                    'label_id': label.id,
-                    'similarity': None,
-                } for label in labels],
-            }
+            labels_ids = [label.id for label in labels]
 
         _all_masks = [(get_3d_mask_for_label(label), label.id in labels_ids) for label in labels]
         _masks_for_generation = [mask[0] for mask in _all_masks if mask[1]]
 
         combined_mask = generate_3d_mask_from_3d_masks(_masks_for_generation, normalize=False)
-        agreement_ratio = np.count_nonzero(combined_mask) / np.sum(combined_mask)
+        agreement_ratio = 100 * np.sum(combined_mask) / np.count_nonzero(combined_mask)
         labels_similarities = [{
             'label_id': label.id,
-            'similarity': np.sum(_all_masks[idx][0]) / np.sum(combined_mask),
+            'used_for_generation': label.id in labels_ids,
+            'similarity': 100 - 100 * (np.abs(np.sum(combined_mask) - np.sum(_all_masks[idx][0])) / np.sum(combined_mask)),
         } for idx, label in enumerate(labels)]
 
-        return {'scan_id': scan_id, 'agreement_ratio': agreement_ratio, 'labels_similarities': labels_similarities}
+        return {
+            'scan_id': scan_id,
+            'agreement_ratio': agreement_ratio,
+            'label_start': int(np.min(np.nonzero(combined_mask)[0])),
+            'label_end': int(np.max(np.nonzero(combined_mask)[0])),
+            'labels_similarities': labels_similarities,
+        }

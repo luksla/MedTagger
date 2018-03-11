@@ -8,7 +8,7 @@ from sqlalchemy.orm.exc import NoResultFound
 from PIL import Image
 
 from medtagger.api.exceptions import NotFoundException
-from medtagger.types import ScanID, LabelPosition, LabelShape, LabelSelectionBinaryMask, ScanMetadata
+from medtagger.types import ScanID, LabelID, LabelPosition, LabelShape, LabelSelectionBinaryMask, ScanMetadata
 from medtagger.database.models import ScanCategory, Scan, Slice, Label, SliceOrientation
 from medtagger.repositories.labels import LabelsRepository
 from medtagger.repositories.slices import SlicesRepository
@@ -103,7 +103,7 @@ def get_slices_for_scan(scan_id: ScanID, begin: int, count: int,
         yield _slice, image
 
 
-def get_validation_mask_for_scan(scan_id: ScanID, begin: int, count: int) -> Iterable[Tuple[Slice, bytes]]:
+def get_validation_mask_for_scan(scan_id: ScanID, labels_ids: List[LabelID], begin: int, count: int) -> Iterable[Tuple[Slice, bytes]]:
     """Fetch validation binary mask for given scan.
 
     :param scan_id: ID of a given scan
@@ -113,11 +113,13 @@ def get_validation_mask_for_scan(scan_id: ScanID, begin: int, count: int) -> Ite
     """
     slices = SlicesRepository.get_slices_by_scan_id(scan_id)
     scan = ScansRepository.get_scan_by_id(scan_id)
-    mask = LabelsOperations.generate_3d_mask_from_labels(scan.labels)
+    labels = [label for label in scan.labels if label.id in labels_ids] or scan.labels
+    mask = LabelsOperations.generate_3d_mask_from_labels(labels)
     for idx, _slice in enumerate(slices[begin:begin + count]):
-        image_as_array = (mask[idx + begin] * 255).astype(np.uint8)
+        image_as_array = (mask[idx + begin] * 128).astype(np.uint8)
+        rgba_image = np.dstack((np.ones((512, 512))*255, np.zeros((512, 512)), np.zeros((512, 512)), image_as_array))
         png_image = io.BytesIO()
-        Image.fromarray(image_as_array, 'L').save(png_image, 'PNG')
+        Image.fromarray(rgba_image.astype(np.uint8), 'RGBA').save(png_image, 'PNG')
         png_image.seek(0)
         yield _slice, png_image.getvalue()
 

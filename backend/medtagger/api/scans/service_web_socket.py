@@ -35,9 +35,12 @@ class Slices(Namespace):
         scan_id = ScanID(str(request['scan_id']))
         begin = request.get('begin', 0)
         count = request.get('count', 1)
+        labels_ids = request.get('labels_ids', [])
+        print('Request for {}, slices: {} - {}, labels: {}'.format(scan_id, begin, begin+count, labels_ids))
 
-        slices = business.get_validation_mask_for_scan(scan_id, begin, count)
+        slices = business.get_validation_mask_for_scan(scan_id, labels_ids, begin, count)
         for index, (_slice, image) in enumerate(slices):
+            print('Responding with {}'.format(index+begin))
             emit('validation_mask', {'scan_id': scan_id, 'index': begin + index, 'image': image})
 
     def _raise_on_invalid_request_slices(self, scan_id: ScanID, begin: int, count: int, orientation: str) -> None:

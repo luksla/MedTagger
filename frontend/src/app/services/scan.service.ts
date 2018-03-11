@@ -108,9 +108,9 @@ export class ScanService {
         this.websocket.emit('request_slices', {scan_id: scanId, begin: begin, count: count});
     }
 
-    requestValidationMask(scanId: string, begin: number, count: number) {
+    requestValidationMask(scanId: string, labels_ids: Array<string>, begin: number, count: number) {
         console.log('ScanService | requestValidationMask | begin:', begin);
-        this.websocket.emit('request_validation_mask', {scan_id: scanId, begin: begin, count: count});
+        this.websocket.emit('request_validation_mask', {scan_id: scanId, labels_ids: labels_ids, begin: begin, count: count});
     }
 
     createNewScan(category: string, numberOfSlices: number) {
