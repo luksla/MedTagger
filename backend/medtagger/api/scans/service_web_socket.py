@@ -29,6 +29,17 @@ class Slices(Namespace):
         for index, (_slice, image) in enumerate(slices):
             emit('slice', {'scan_id': scan_id, 'index': begin + index, 'image': image})
 
+    def on_request_validation_mask(self, request: Dict) -> None:
+        """Handle slices request triggered  by `request_validation_mask` event."""
+        assert request.get('scan_id'), 'ScanID is required!'
+        scan_id = ScanID(str(request['scan_id']))
+        begin = request.get('begin', 0)
+        count = request.get('count', 1)
+
+        slices = business.get_validation_mask_for_scan(scan_id, begin, count)
+        for index, (_slice, image) in enumerate(slices):
+            emit('validation_mask', {'scan_id': scan_id, 'index': begin + index, 'image': image})
+
     def _raise_on_invalid_request_slices(self, scan_id: ScanID, begin: int, count: int, orientation: str) -> None:
         """Validate incoming request and raise an exception if there are issues with given arguments.
 

@@ -97,9 +97,20 @@ export class ScanService {
         });
     }
 
+    validationMaskObservable(): Observable<MarkerSlice> {
+        return this.websocket.fromEvent<any>('validation_mask').map((slice: { scan_id: string, index: number, image: ArrayBuffer }) => {
+            return new MarkerSlice(slice.scan_id, slice.index, slice.image);
+        });
+    }
+
     requestSlices(scanId: string, begin: number, count: number) {
         console.log('ScanService | requestSlices | begin:', begin);
         this.websocket.emit('request_slices', {scan_id: scanId, begin: begin, count: count});
+    }
+
+    requestValidationMask(scanId: string, begin: number, count: number) {
+        console.log('ScanService | requestValidationMask | begin:', begin);
+        this.websocket.emit('request_validation_mask', {scan_id: scanId, begin: begin, count: count});
     }
 
     createNewScan(category: string, numberOfSlices: number) {

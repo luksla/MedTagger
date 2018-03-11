@@ -31,6 +31,7 @@ from medtagger.api.labels.service import labels_ns  # noqa
 from medtagger.api.scans.service_rest import scans_ns as scans_rest_ns  # noqa
 from medtagger.api.users.service import users_ns  # noqa
 from medtagger.api.auth.service import auth_ns  # noqa
+from medtagger.api.validation.service import validation_ns  # noqa
 
 # Import all WebSocket services
 from medtagger.api.scans.service_web_socket import Slices as slices_websocket_ns  # noqa

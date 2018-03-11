@@ -1,9 +1,40 @@
 <div class="validation-page">
-    <div class="innerElement canvasInterface">
+   <div class="innerElement canvasInterface">
+        <div class="availableLabels">
+            <h2>Details</h2>
+            <p>
+                <strong>Agreement ratio:</strong> 72%<br/>
+                <strong>Valid:</strong> 8 out of 12<br/>
+                <strong>Mean labeling time:</strong> 12 seconds
+            </p>
+            <mat-divider></mat-divider>
+
+            <h2>Available Labels</h2>
+            <mat-list>
+                <mat-list-item>
+                    <mat-checkbox>Label (diff: 10%)</mat-checkbox>
+                    <span class="fill-space"></span>
+                    <button mat-button>Preview</button>
+                </mat-list-item>
+                <mat-list-item>
+                    <mat-checkbox>Label (diff: 20%)</mat-checkbox>
+                    <span class="fill-space"></span>
+                    <button mat-button>Preview</button>
+                </mat-list-item>
+                <mat-list-item>
+                    <mat-checkbox>Label (diff: 13%)</mat-checkbox>
+                    <span class="fill-space"></span>
+                    <button mat-button>Preview</button>
+                </mat-list-item>
+            </mat-list>
+            <section class="generate-button">
+                <button mat-raised-button color="primary">Generate preview</button>
+            </section>
+        </div>
         <app-scan-viewer #scanViewer></app-scan-viewer>
         <div class="button-row">
-            <button mat-raised-button color="primary" (click)="markAsValid()">Valid</button>
-            <button mat-raised-button color="warn" (click)="markAsInvalid()">Invalid</button>
+            <button mat-raised-button color="primary" (click)="markAsValid()">OK</button>
+            <button mat-raised-button color="warn" (click)="markAsInvalid()">All Invalid</button>
         </div>
     </div>
 </div>

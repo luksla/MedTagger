@@ -19,7 +19,7 @@ import {Location} from "@angular/common";
 })
 export class ValidationPageComponent implements OnInit {
 
-    private static readonly SLICE_BATCH_SIZE = 10;
+    private static readonly SLICE_BATCH_SIZE = 25;
     @ViewChild(ScanViewerComponent) scanViewer: ScanViewerComponent;
     label: Label;
     scan: ScanMetadata;
@@ -35,25 +35,25 @@ export class ValidationPageComponent implements OnInit {
         this.scanViewer.setSelector(new RectROISelector(this.scanViewer.getCanvas()));
 
         this.requestSlicesWithLabel();
-        this.scanService.slicesObservable().subscribe((slice: MarkerSlice) => {
+        this.scanService.validationMaskObservable().subscribe((slice: MarkerSlice) => {
             this.scanViewer.feedData(slice);
+        });
 
-            this.scanViewer.hookUpSliceObserver(ValidationPageComponent.SLICE_BATCH_SIZE).then((isObserverHooked: boolean) => {
-                if (isObserverHooked) {
-                    this.scanViewer.observableSliceRequest.subscribe((sliceRequest: number) => {
-                        console.log('ValidationPage | observable sliceRequest: ', sliceRequest);
-                        let count = ValidationPageComponent.SLICE_BATCH_SIZE;
-                        if (sliceRequest + count > this.scan.numberOfSlices) {
-                            count = this.scan.numberOfSlices - sliceRequest;
-                        }
-                        if (sliceRequest < 0) {
-                            count = count + sliceRequest;
-                            sliceRequest = 0;
-                        }
-                        this.scanService.requestSlices(this.label.scanId, sliceRequest, count);
-                    });
-                }
-            });
+        this.scanViewer.hookUpSliceObserver(ValidationPageComponent.SLICE_BATCH_SIZE).then((isObserverHooked: boolean) => {
+            if (isObserverHooked) {
+                this.scanViewer.observableSliceRequest.subscribe((sliceRequest: number) => {
+                    console.log('ValidationPage | observable sliceRequest: ', sliceRequest);
+                    let count = ValidationPageComponent.SLICE_BATCH_SIZE;
+                    if (sliceRequest + count > this.scan.numberOfSlices) {
+                        count = this.scan.numberOfSlices - sliceRequest;
+                    }
+                    if (sliceRequest < 0) {
+                        count = count + sliceRequest;
+                        sliceRequest = 0;
+                    }
+                    this.scanService.requestValidationMask(this.label.scanId, sliceRequest, count);
+                });
+            }
         });
     }
 
@@ -82,7 +82,7 @@ export class ValidationPageComponent implements OnInit {
                 if (begin + ValidationPageComponent.SLICE_BATCH_SIZE > this.scan.numberOfSlices) {
                     count = this.scan.numberOfSlices - begin;
                 }
-                this.scanService.requestSlices(this.label.scanId, begin, count);
+                this.scanService.requestValidationMask(this.label.scanId, begin, count);
             });
         }).catch((error: Error) => {
             this.dialogService

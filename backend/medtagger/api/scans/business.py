@@ -1,8 +1,11 @@
 """Module responsible for business logic in all Scans endpoints."""
+import io
 import logging
 from typing import Iterable, Dict, List, Tuple
 
+import numpy as np
 from sqlalchemy.orm.exc import NoResultFound
+from PIL import Image
 
 from medtagger.api.exceptions import NotFoundException
 from medtagger.types import ScanID, LabelPosition, LabelShape, LabelSelectionBinaryMask, ScanMetadata
@@ -11,6 +14,7 @@ from medtagger.repositories.labels import LabelsRepository
 from medtagger.repositories.slices import SlicesRepository
 from medtagger.repositories.scans import ScansRepository
 from medtagger.repositories.scan_categories import ScanCategoriesRepository
+from medtagger.operations import labels as LabelsOperations
 from medtagger.workers.storage import parse_dicom_and_update_slice
 
 logger = logging.getLogger(__name__)
@@ -97,6 +101,25 @@ def get_slices_for_scan(scan_id: ScanID, begin: int, count: int,
     for _slice in slices[begin:begin + count]:
         image = SlicesRepository.get_slice_converted_image(_slice.id)
         yield _slice, image
+
+
+def get_validation_mask_for_scan(scan_id: ScanID, begin: int, count: int) -> Iterable[Tuple[Slice, bytes]]:
+    """Fetch validation binary mask for given scan.
+
+    :param scan_id: ID of a given scan
+    :param begin: first slice index (included)
+    :param count: number of slices that will be returned
+    :return: generator for Slices
+    """
+    slices = SlicesRepository.get_slices_by_scan_id(scan_id)
+    scan = ScansRepository.get_scan_by_id(scan_id)
+    mask = LabelsOperations.generate_3d_mask_from_labels(scan.labels)
+    for idx, _slice in enumerate(slices[begin:begin + count]):
+        image_as_array = (mask[idx + begin] * 255).astype(np.uint8)
+        png_image = io.BytesIO()
+        Image.fromarray(image_as_array, 'L').save(png_image, 'PNG')
+        png_image.seek(0)
+        yield _slice, png_image.getvalue()
 
 
 def add_label(scan_id: ScanID, selections: List[Dict]) -> Label:
