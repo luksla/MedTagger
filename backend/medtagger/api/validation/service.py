@@ -30,12 +30,12 @@ class ValidationPage(Resource):
         _all_masks = [(get_3d_mask_for_label(label), label.id in labels_ids) for label in labels]
         _masks_for_generation = [mask[0] for mask in _all_masks if mask[1]]
 
-        combined_mask = generate_3d_mask_from_3d_masks(_masks_for_generation, normalize=False)
+        combined_mask = generate_3d_mask_from_3d_masks(_masks_for_generation)
         agreement_ratio = 100 * np.sum(combined_mask) / np.count_nonzero(combined_mask)
         labels_similarities = [{
             'label_id': label.id,
             'used_for_generation': label.id in labels_ids,
-            'similarity': 100 - 100 * (np.abs(np.sum(combined_mask) - np.sum(_all_masks[idx][0])) / np.sum(combined_mask)),
+            'similarity': 100 - 100 * (np.abs(np.sum(combined_mask) - np.sum(_all_masks[idx][0])) / np.count_nonzero(combined_mask)),
         } for idx, label in enumerate(labels)]
 
         return {
