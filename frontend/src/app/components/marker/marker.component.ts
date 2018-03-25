@@ -4,6 +4,12 @@ import {MatSlider} from '@angular/material/slider';
 import {Subject} from 'rxjs/Subject';
 import {ScanViewerComponent} from '../scan-viewer/scan-viewer.component';
 import {SliceSelection} from '../../model/SliceSelection';
+import {MatSlideToggleChange, MatSlideToggle} from "@angular/material";
+
+enum MarkerMode {
+    SELECTING,
+    ZOOMING
+}
 
 @Component({
     selector: 'app-marker-component',
@@ -11,6 +17,9 @@ import {SliceSelection} from '../../model/SliceSelection';
     styleUrls: ['./marker.component.scss']
 })
 export class MarkerComponent extends ScanViewerComponent implements OnInit {
+
+    MarkerMode = MarkerMode;
+    currentMarkerMode: MarkerMode;
 
     currentImage: HTMLImageElement;
     downloadingScanInProgress = false;
@@ -21,6 +30,15 @@ export class MarkerComponent extends ScanViewerComponent implements OnInit {
         this.currentImage = viewElement.nativeElement;
     }
 
+    zoomCanvas: HTMLCanvasElement;
+
+    @ViewChild('zoomCanvas')
+    set viewZoomCanvas(viewElement: ElementRef) {
+        this.zoomCanvas = viewElement.nativeElement;
+    }
+
+    zoomCanvasCtx: CanvasRenderingContext2D;
+
     canvas: HTMLCanvasElement;
 
     @ViewChild('canvas')
@@ -29,6 +47,8 @@ export class MarkerComponent extends ScanViewerComponent implements OnInit {
     }
 
     @ViewChild('slider') slider: MatSlider;
+
+    @ViewChild('editModeToggle') editModeToggle: MatSlideToggle;
 
     public selectionState: {isValid: boolean, is2d: boolean, hasArchive: boolean} = { isValid: false, is2d: false, hasArchive: false};
 
@@ -92,7 +112,20 @@ export class MarkerComponent extends ScanViewerComponent implements OnInit {
         console.log('Marker init');
         console.log('View elements: image ', this.currentImage, ', canvas ', this.canvas, ', slider ', this.slider);
 
+        this.currentMarkerMode = MarkerMode.SELECTING;
+
+        this.zoomCanvasCtx = this.zoomCanvas.getContext('2d');
+
         this.slices = new Map<number, MarkerSlice>();
+
+        this.editModeToggle.registerOnChange( (toggleChange: MatSlideToggleChange)=> {
+            console.log('Marker | checkEditMode | currentMode: ', this.currentMarkerMode);
+            console.log('Marker | checkEditMode | toggleChange: ', toggleChange);
+            this.currentMarkerMode = toggleChange ? MarkerMode.SELECTING : MarkerMode.ZOOMING;
+            if(this.currentMarkerMode == this.MarkerMode.ZOOMING) {
+                this.prepareZoomCanvas();
+            }
+        });
 
         this.selector.clearData();
 
@@ -133,5 +166,16 @@ export class MarkerComponent extends ScanViewerComponent implements OnInit {
         this.canvas.onmousemove = (mouseEvent: MouseEvent) => {
             this.selector.onMouseMove(mouseEvent);
         };
+    }
+
+    private prepareZoomCanvas(): void {
+        this.zoomCanvasCtx.clearRect(0, 0, this.zoomCanvas.width, this.zoomCanvas.height);
+        console.log('Marker | prepareZoomCanvas | currentImage:', this.currentImage);
+        console.log('Marker | prepareZoomCanvas | zoomCanvas:', this.zoomCanvas);
+
+        this.zoomCanvasCtx.drawImage(this.currentImage,
+            0, 0, 512, 512,
+            0, 0, 600, 600);
+        this.zoomCanvasCtx.drawImage(this.canvas, 0, 0);
     }
 }

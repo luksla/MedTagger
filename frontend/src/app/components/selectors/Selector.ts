@@ -39,5 +39,4 @@ export interface Selector<SliceSelection> {
     removeCurrentSelection(): any;
 
     clearSelections(): any;
-
 }

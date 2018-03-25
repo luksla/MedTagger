@@ -1,6 +1,7 @@
 <div id="markerWrapper">
     <img #image id="markerBackgroundImage" width="600" height="600"/>
     <canvas #canvas id="markerCanvas" width="600" height="600"></canvas>
+    <canvas #zoomCanvas [hidden]="currentMarkerMode == MarkerMode.SELECTING" id="zoomCanvas" width="600" height="600"></canvas>
     <mat-slider #slider id="markerSlider"
                 (blur)="this.sliderFocus()"
                 [disabled]="false"
@@ -14,6 +15,18 @@
     </mat-slider>
     <div *ngIf="downloadingScanInProgress || downloadingSlicesInProgress">
          <mat-progress-spinner id="markerSpinner" mode="indeterminate" color="accent"></mat-progress-spinner>
+    </div>
+    <div id="toolBox">
+        <button mat-icon-button (click)="zoomIn()">
+            <mat-icon aria-label="Zoom in">zoom_in</mat-icon>
+        </button>
+        <button mat-icon-button (click)="zoomOut()">
+            <mat-icon aria-label="Zoom out">zoom_out</mat-icon>
+        </button>
+        <mat-slide-toggle #editModeToggle
+                [checked]="true">
+            Labelling mode:
+        </mat-slide-toggle>
     </div>
 </div>
 

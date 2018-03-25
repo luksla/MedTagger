@@ -2,9 +2,17 @@
 
 $canvas-size: 600px;
 $slider-offset: 20px;
+$toolbox-offset: 200px;
 $spinner-radius: 50px;
 
 #markerCanvas {
+    width: $canvas-size;
+    height: $canvas-size;
+    position: absolute;
+    user-select: none;
+}
+
+#zoomCanvas {
     width: $canvas-size;
     height: $canvas-size;
     position: absolute;
@@ -32,6 +40,11 @@ $spinner-radius: 50px;
     position: absolute;
     left: $canvas-size / 2;
     top: $canvas-size;
+}
+
+#toolBox {
+    position: absolute;
+    left: - $toolbox-offset;
 }
 
 // pretty neat workaround to always show slider thumb

@@ -46,6 +46,20 @@ export class ScanViewerComponent implements OnInit {
         this.sliderFocus();
     }
 
+    public zoomIn(): boolean {
+        let scale: number = 2;
+        console.log("RectROISelector | zoomIn | scale: ", scale);
+        // this.currentImage.
+        return true;
+    }
+
+    public zoomOut(): boolean {
+        let scale: number = 1/2;
+        console.log("RectROISelector | zoomOut | scale: ", scale);
+        // this.scale(scale, scale);
+        return true;
+    }
+
     public sliderFocus() {
         this.slider._elementRef.nativeElement.focus();
     }

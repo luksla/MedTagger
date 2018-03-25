@@ -43,7 +43,7 @@ import {
     MatTooltipModule,
     MatDialog,
     MatDialogModule,
-    MatChipsModule,
+    MatChipsModule, MatSlideToggleModule,
 } from '@angular/material';
 import {ScanViewerComponent} from '../components/scan-viewer/scan-viewer.component';
 import {routing} from "./app.routes";
@@ -80,6 +80,7 @@ import {InfoDialog} from "../dialogs/info.dialog";
         MatFormFieldModule,
         MatInputModule,
         MatSliderModule,
+        MatSlideToggleModule,
         MatButtonModule,
         MatIconModule,
         MatSidenavModule,
