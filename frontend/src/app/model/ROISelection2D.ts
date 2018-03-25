@@ -84,4 +84,8 @@ export class ROISelection2D implements SliceSelection {
     private scale(arg: number, scalar: number): number {
         return arg * scalar;
     }
+
+	public getSelectionObject(): SliceSelection {
+    	return this;
+	}
 }

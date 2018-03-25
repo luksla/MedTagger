@@ -1,42 +1,49 @@
 import {EventEmitter} from "@angular/core";
+import {SelectionPoint} from "../../model/SelectionPoint";
 
 export interface Selector<SliceSelection> {
 
-    drawPreviousSelections(): any;
+	drawPreviousSelections(): any;
 
-    drawSelection(selection: SliceSelection, color: string): any;
+	drawSelection(selection: SliceSelection, color: string): any;
 
-    onMouseDown(event: MouseEvent): any;
+	onMouseDown(eventPoint: SelectionPoint): any;
 
-    onMouseMove(event: MouseEvent): any;
+	onMouseMove(eventPoint: SelectionPoint): any;
 
-    onMouseUp(event: MouseEvent): any;
+	onMouseUp(eventPoint: SelectionPoint): any;
 
-    clearCanvasSelection(): any;
+	clearCanvasSelection(): any;
 
-    clearData(): any;
+	clearData(): any;
 
-    getStateChangeEmitter(): EventEmitter<void>;
+	getStateChangeEmitter(): EventEmitter<void>;
 
-    addCurrentSelection(): any;
+	getCurrentSelection(): SliceSelection;
 
-    updateCurrentSlice(currentSliceId: number): any;
+	addCurrentSelection(): any;
 
-    updateCanvasPosition(canvasRect: ClientRect): any;
+	updateCurrentSlice(currentSliceId: number): any;
 
-    hasArchivedSelections(): boolean;
+	updateCanvasPosition(canvasRect: ClientRect): any;
 
-    hasSliceSelection(): boolean;
+	hasArchivedSelections(): boolean;
 
-    hasValidSelection(...validityFlags: boolean[]): boolean;
+	hasSliceSelection(): boolean;
 
-    getSelections(): SliceSelection[];
+	hasValidSelection(...validityFlags: boolean[]): boolean;
 
-    formArchivedSelections(selectionMap: Array<SliceSelection>): Array<SliceSelection>;
+	getSelections(): SliceSelection[];
 
-    archiveSelections(selectionMap?: Array<SliceSelection>): any;
+	formArchivedSelections(selectionMap: Array<SliceSelection>): Array<SliceSelection>;
 
-    removeCurrentSelection(): any;
+	archiveSelections(selectionMap?: Array<SliceSelection>): any;
 
-    clearSelections(): any;
+	removeCurrentSelection(): any;
+
+	clearSelections(): any;
+
+	getTranslationMatrix(): Array<number>;
+
+	updateTranslationMatrix(weights: Array<number>): any;
 }

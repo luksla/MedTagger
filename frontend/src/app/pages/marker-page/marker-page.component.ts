@@ -39,7 +39,7 @@ export class MarkerPageComponent implements OnInit {
     ngOnInit() {
         console.log('MarkerPage init', this.marker);
 
-        this.marker.setSelector(new RectROISelector(this.marker.getCanvas()));
+        this.marker.setSelector(new RectROISelector(this.marker.canvas));
 
         this.route.queryParamMap.subscribe(params => {
             this.category = params.get('category') || '';
