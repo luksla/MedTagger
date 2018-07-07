@@ -5,7 +5,7 @@ import {groupBy, toArray} from 'rxjs/operators';
 import {ScanMetadata} from '../../model/ScanMetadata';
 import {MatSlider} from '@angular/material';
 import {Selector} from '../selectors/Selector';
-import {SliceSelection} from '../../model/SliceSelection';
+import {SliceSelection} from '../../model/selections/SliceSelection';
 
 @Component({
     selector: 'app-scan-viewer',
