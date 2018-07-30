@@ -9,7 +9,7 @@ interface RandomLabelResponse {
     label_id: string;
     scan_id: string;
     status: string;
-    selections: Array<SliceSelection>;
+    elements: Array<SliceSelection>;
     labeling_time: number;
 }
 
@@ -18,13 +18,13 @@ export class LabelService {
 
     constructor(private http: HttpClient) {}
 
-    getRandomLabel(selectionConverter: (selections: any) => Array<SliceSelection>): Promise<Label> {
+    getLabel(labelId: string, selectionConverter: (selections: any) => Array<SliceSelection>): Promise<Label> {
         return new Promise((resolve, reject) => {
-            this.http.get<RandomLabelResponse>(environment.API_URL + '/labels/random').toPromise().then(
+            this.http.get<RandomLabelResponse>(environment.API_URL + '/labels/' + labelId).toPromise().then(
                 response => {
                     console.log('LabelsService | getRandomLabel | response: ', response);
                     resolve(new Label(response.label_id, response.scan_id, response.status,
-                                      selectionConverter(response.selections), response.labeling_time));
+                                      selectionConverter(response.elements), response.labeling_time));
                 },
                 error => {
                     console.log('LabelsService | getRandomLabel | error: ', error);

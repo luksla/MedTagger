@@ -6,8 +6,14 @@ import {MarkerSlice} from '../../model/MarkerSlice';
 import {ScanMetadata} from '../../model/ScanMetadata';
 import {SliceRequest} from '../../model/SliceRequest';
 import {ScanViewerComponent} from '../../components/scan-viewer/scan-viewer.component';
+import {Selector} from '../../components/selectors/Selector';
 import {RectROISelector} from '../../components/selectors/RectROISelector';
+import {PointSelector} from '../../components/selectors/PointSelector';
+import {ChainSelector} from '../../components/selectors/ChainSelector';
+import {SliceSelection} from '../../model/SliceSelection';
 import {ROISelection2D} from '../../model/ROISelection2D';
+import {ChainSelection} from '../../model/ChainSelection';
+import {Point} from '../../model/Point';
 import {DialogService} from '../../services/dialog.service';
 import {Location} from '@angular/common';
 
@@ -24,7 +30,7 @@ export class ValidationPageComponent implements OnInit {
     @ViewChild(ScanViewerComponent) scanViewer: ScanViewerComponent;
     label: Label;
     scan: ScanMetadata;
-
+    selectors: Map<string, Selector<any>>;
 
     constructor(private labelService: LabelService, private scanService: ScanService,
                 private dialogService: DialogService, private location: Location) {
@@ -33,60 +39,76 @@ export class ValidationPageComponent implements OnInit {
     ngOnInit() {
         console.log('ValidationPage init', this.scanViewer);
 
-        this.scanViewer.setSelectors([new RectROISelector(this.scanViewer.getCanvas())]);
+        this.selectors = new Map<string, Selector<any>>([
+            ['RECTANGLE', new RectROISelector(this.scanViewer.getCanvas())],
+            ['POINT', new PointSelector(this.scanViewer.getCanvas())],
+            ['CHAIN', new ChainSelector(this.scanViewer.getCanvas())]
+        ]);
+        console.log(Array.from(this.selectors.values()));
+        this.scanViewer.setSelectors(Array.from(this.selectors.values()));
 
         this.requestSlicesWithLabel();
+
         this.scanService.slicesObservable().subscribe((slice: MarkerSlice) => {
             this.scanViewer.feedData(slice);
-
-            this.scanViewer.hookUpSliceObserver(ValidationPageComponent.SLICE_BATCH_SIZE).then((isObserverHooked: boolean) => {
-                if (isObserverHooked) {
-                    this.scanViewer.observableSliceRequest.subscribe((request: SliceRequest) => {
-                        // TODO: Why is it copied & pasted here? We shoul unify this ASAP!
-                        const reversed = request.reversed;
-                        let sliceRequest = request.slice;
-                        console.log('ValiadionPage | observable sliceRequest: ', sliceRequest, ' reversed: ', reversed);
-                        let count = ValidationPageComponent.SLICE_BATCH_SIZE;
-                        if (reversed === false && sliceRequest + count > this.scan.numberOfSlices) {
-                            count = this.scan.numberOfSlices - sliceRequest;
-                        }
-                        if (reversed === true) {
-                            sliceRequest -= count;
-                            if (sliceRequest < 0) {
-                                count += sliceRequest;
-                                sliceRequest = 0;
-                            }
-                        }
-                        if (count <= 0) {
-                            return;
-                        }
-                        this.scanService.requestSlices(this.scan.scanId, sliceRequest, count, reversed);
-                        // TODO: Downloading Slices indicator is not available on Validation Page...
-                        // if (this.scanViewer.downloadingSlicesInProgress === false) {
-                        //     this.scanService.requestSlices(this.scan.scanId, sliceRequest, count, reversed);
-                        //     this.scanViewer.setDownloadSlicesInProgress(true);
-                        // }
-                    });
-                }
-            });
         });
+
+        this.scanViewer.hookUpSliceObserver(ValidationPageComponent.SLICE_BATCH_SIZE).then((isObserverHooked: boolean) => {
+            if (isObserverHooked) {
+                this.scanViewer.observableSliceRequest.subscribe((request: SliceRequest) => {
+                    // TODO: Why is it copied & pasted here? We shoul unify this ASAP!
+                    const reversed = request.reversed;
+                    let sliceRequest = request.slice;
+                    console.log('ValiadionPage | observable sliceRequest: ', sliceRequest, ' reversed: ', reversed);
+                    let count = ValidationPageComponent.SLICE_BATCH_SIZE;
+                    if (reversed === false && sliceRequest + count > this.scan.numberOfSlices) {
+                        count = this.scan.numberOfSlices - sliceRequest;
+                    }
+                    if (reversed === true) {
+                        sliceRequest -= count;
+                        if (sliceRequest < 0) {
+                            count += sliceRequest;
+                            sliceRequest = 0;
+                        }
+                    }
+                    if (count <= 0) {
+                        return;
+                    }
+                    this.scanService.requestSlices(this.scan.scanId, sliceRequest, count, reversed);
+                    // TODO: Downloading Slices indicator is not available on Validation Page...
+                    // if (this.scanViewer.downloadingSlicesInProgress === false) {
+                    //     this.scanService.requestSlices(this.scan.scanId, sliceRequest, count, reversed);
+                    //     this.scanViewer.setDownloadSlicesInProgress(true);
+                    // }
+                });
+            }
+        });
+
     }
 
-    private rect2DROIConverter(selections: any): Array<ROISelection2D> {
-        const roiSelections: Array<ROISelection2D> = [];
+    private selectionConverter(selections: any): Array<SliceSelection> {
+        const outputSelections: Array<SliceSelection> = [];
         selections.forEach((selection: any) => {
-            roiSelections.push(new ROISelection2D(selection.x, selection.y, selection.slice_index, selection.width, selection.height));
+            if (selection.tool == 'CHAIN') {
+                const points: Point[] = [];
+                for (let i = 0; i < selection.points.length; i++) {
+                    points.push(new Point(selection.points[i].x, selection.points[i].y));
+                }
+                outputSelections.push(new ChainSelection(points, selection.slice_index));
+            }
         });
-        return roiSelections;
+        return outputSelections;
     }
 
     private requestSlicesWithLabel(): void {
-        this.labelService.getRandomLabel(this.rect2DROIConverter).then((label: Label) => {
+        let labelId = '39c5eb94-710a-4c23-a1ad-d1dec58ee37a';
+        this.labelService.getLabel(labelId, this.selectionConverter).then((label: Label) => {
             this.label = label;
             this.scanViewer.setArchivedSelections(this.label.labelSelections);
 
             this.scanService.getScanForScanId(this.label.scanId).then((scan: ScanMetadata) => {
                 this.scan = scan;
+                this.scanViewer.setScanMetadata(this.scan);
 
                 const indexes: number[] = [];
                 for (let i = 0; i < label.labelSelections.length; i++) {
@@ -106,18 +128,6 @@ export class ValidationPageComponent implements OnInit {
                 .subscribe(() => {
                     this.location.back();
                 });
-        });
-    }
-
-    public markAsValid(): void {
-        this.labelService.changeStatus(this.label.labelId, 'VALID').then(() => {
-            this.skipScan();
-        });
-    }
-
-    public markAsInvalid(): void {
-        this.labelService.changeStatus(this.label.labelId, 'INVALID').then(() => {
-            this.skipScan();
         });
     }
 

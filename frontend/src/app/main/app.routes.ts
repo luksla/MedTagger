@@ -37,7 +37,7 @@ export const routes: Routes = [
     {path: 'home', component: HomePageComponent, data: {title: 'Home'}, canActivate: [AuthGuard]},
     {path: 'upload', component: UploadPageComponent, data: {title: 'Upload new Scans'}, canActivate: [AuthGuard]},
     {path: 'settings', component: SettingsPageComponent, data: {title: 'Settings'}, canActivate: [AuthGuard]},
-    {path: 'validation', component: ValidationPageComponent, data: {title: 'Validation'}, canActivate: [AuthGuard]},
+    {path: 'validation', component: ValidationPageComponent, data: {title: 'Validation', disableFooter: true}, canActivate: [AuthGuard]},
     ...labellingRoutes
 ];
 

@@ -126,7 +126,6 @@ export class MarkerPageComponent implements OnInit {
                 this.scanService.requestSlices(scan.scanId, begin, count, false);
             },
             (errorResponse: Error) => {
-                console.log(errorResponse);
                 this.marker.setDownloadScanInProgress(false);
                 this.marker.setDownloadSlicesInProgress(false);
                 this.dialogService
