@@ -1,6 +1,5 @@
 """Module containing all custom types."""
-from dataclasses import dataclass
-from typing import NewType
+from typing import NewType, NamedTuple
 
 
 ScanID = NewType('ScanID', str)
@@ -23,27 +22,31 @@ SurveyResponseID = NewType('SurveyResponseID', ActionResponseID)
 SliceLocation = NewType('SliceLocation', float)
 
 
-@dataclass
-class SlicePosition:
+class SlicePosition(NamedTuple):  # pylint: disable=too-few-public-methods
+    """Describe position of a Slice."""
+
     x: float
     y: float
     z: float
 
 
-@dataclass
-class LabelPosition:
+class LabelPosition(NamedTuple):  # pylint: disable=too-few-public-methods
+    """Describe position of a Label."""
+
     x: float
     y: float
     slice_index: int
 
 
-@dataclass
-class LabelShape:
+class LabelShape(NamedTuple):  # pylint: disable=too-few-public-methods
+    """Describe shape of a Label."""
+
     width: float
     height: float
 
 
-@dataclass
-class Point:
+class Point(NamedTuple):  # pylint: disable=too-few-public-methods
+    """Describe a single Point."""
+
     x: float
     y: float
