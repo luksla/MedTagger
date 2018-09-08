@@ -18,16 +18,26 @@ from medtagger.types import ScanID, SliceID, LabelID, LabelElementID, SliceLocat
     LabelPosition, LabelShape, LabelingTime, LabelTagID, ActionID, SurveyID, SurveyElementID, SurveyElementKey, \
     ActionResponseID, SurveyResponseID, PointID, TaskID
 
-#########################
+########################
 #
-#  Users related models
+#  Many-to-many tables
 #
-#########################
+########################
 
 users_roles = Table('Users_Roles', Base.metadata,
                     Column('user_id', Integer, ForeignKey('Users.id')),
                     Column('role_id', Integer, ForeignKey('Roles.id')))
 
+datasets_tasks = Table('Datasets_Tasks', Base.metadata,
+                       Column('dataset_id', Integer, ForeignKey('Datasets.id'), nullable=False),
+                       Column('task_id', Integer, ForeignKey('Tasks.id'), nullable=False))
+
+
+#########################
+#
+#  Users related models
+#
+#########################
 
 class Role(Base):
     """Defines model for the Roles table."""
@@ -39,6 +49,10 @@ class Role(Base):
     def __init__(self, name: str) -> None:
         """Initialize Role."""
         self.name = name
+
+    def __repr__(self) -> str:
+        """Return string representation for Role."""
+        return f'<{self.__class__.__name__} ({self.id}): {self.name}>'
 
 
 class User(Base):
@@ -68,7 +82,7 @@ class User(Base):
 
     def __repr__(self) -> str:
         """Return string representation for User."""
-        return '<{}: {}: {}>'.format(self.__class__.__name__, self.id, self.email)
+        return f'<{self.__class__.__name__} ({self.id}): {self.email}>'
 
     @property
     def role(self) -> Role:
@@ -93,10 +107,9 @@ class UserSettings(Base):
         """Initialize UserSettings."""
         self.skip_tutorial = False
 
-
-datasets_tasks = Table('Datasets_Tasks', Base.metadata,
-                       Column('dataset_id', Integer, ForeignKey('Datasets.id'), nullable=False),
-                       Column('task_id', Integer, ForeignKey('Tasks.id'), nullable=False))
+    def __repr__(self) -> str:
+        """Return string representation for UserSettings."""
+        return f'<{self.__class__.__name__} ({self.id}): SkipTutorial={self.skip_tutorial}>'
 
 
 class Dataset(Base):
@@ -121,7 +134,7 @@ class Dataset(Base):
 
     def __repr__(self) -> str:
         """Return string representation for Dataset."""
-        return '<{}: {}: {}: {}>'.format(self.__class__.__name__, self.id, self.key, self.name)
+        return f'<{self.__class__.__name__} ({self.id}): {self.key}: {self.name}>'
 
 
 class Task(Base):
@@ -152,7 +165,7 @@ class Task(Base):
 
     def __repr__(self) -> str:
         """Return string representation for Task."""
-        return '<{}: {}: {}: {}>'.format(self.__class__.__name__, self.id, self.key, self.name)
+        return f'<{self.__class__.__name__} ({self.id}): {self.key}: {self.name}: {self.image_path}>'
 
     @property
     def available_tags(self) -> List['LabelTag']:
@@ -198,7 +211,7 @@ class Scan(Base):
 
     def __repr__(self) -> str:
         """Return string representation for Scan."""
-        return '<{}: {}: {}: {}>'.format(self.__class__.__name__, self.id, self.dataset.key, self.owner)
+        return f'<{self.__class__.__name__} ({self.id}) in {self.dataset}: {self.status}: {self.owner}>'
 
     @property
     def width(self) -> Optional[int]:
@@ -278,7 +291,7 @@ class Slice(Base):
 
     def __repr__(self) -> str:
         """Return string representation for Slice."""
-        return '<{}: {}: {}: {}>'.format(self.__class__.__name__, self.id, self.location, self.orientation)
+        return f'<{self.__class__.__name__} ({self.id}): {self.location}: {self.orientation}: {self.status}>'
 
     def update_location(self, new_location: SliceLocation) -> 'Slice':
         """Update location in the Slice."""
@@ -353,8 +366,8 @@ class Label(Base):
 
     def __repr__(self) -> str:
         """Return string representation for Label."""
-        return '<{}: {}: {}: {} {} {} {}>'.format(self.__class__.__name__, self.id, self.scan_id, self.task_id,
-                                                  self.labeling_time, self.owner, self.comment)
+        return f'<{self.__class__.__name__} ({self.id}): {self.scan}: {self.task}: ({self.owner})' \
+               f' "{self.comment}" Time={self.labeling_time}>'
 
     def update_status(self, status: LabelVerificationStatus) -> 'Label':
         """Update Label's verification status.
@@ -397,7 +410,7 @@ class LabelTag(Base):
 
     def __repr__(self) -> str:
         """Return string representation for Label Tag."""
-        return '<{}: {}: {}: {}>'.format(self.__class__.__name__, self.id, self.key, self.name)
+        return f'<{self.__class__.__name__} ({self.id}): {self.key}: {self.name}>'
 
 
 class LabelElement(Base):
@@ -435,7 +448,7 @@ class LabelElement(Base):
 
     def __repr__(self) -> str:
         """Return string representation for Label Element."""
-        return '<{}: {}>'.format(self.__class__.__name__, self.id)
+        return f'<{self.__class__.__name__} ({self.id}): Slice {self.slice_index}: {self.tag}>'
 
     def update_status(self, status: LabelElementStatus) -> 'LabelElement':
         """Update Label's element status.
@@ -479,7 +492,8 @@ class RectangularLabelElement(LabelElement):
 
     def __repr__(self) -> str:
         """Return string representation for  Rectangular Label Element."""
-        return '<{}: {}>'.format(self.__class__.__name__, self.id)
+        return f'<{self.__class__.__name__} ({self.id}): Slice {self.slice_index}: {self.tag}: ({self.x}, {self.y}),' \
+               f' ({self.width}, {self.height})>'
 
 
 class BrushLabelElement(LabelElement):
@@ -510,7 +524,8 @@ class BrushLabelElement(LabelElement):
 
     def __repr__(self) -> str:
         """Return string representation for Brush Label Element."""
-        return '<{}: {}>'.format(self.__class__.__name__, self.id)
+        return f'<{self.__class__.__name__} ({self.id}): Slice {self.slice_index}: {self.tag}:' \
+               f' ({self.width}, {self.height})>'
 
 
 class PointLabelElement(LabelElement):
@@ -539,7 +554,7 @@ class PointLabelElement(LabelElement):
 
     def __repr__(self) -> str:
         """Return string representation for Point Label Element."""
-        return '<{}: {}>'.format(self.__class__.__name__, self.id)
+        return f'<{self.__class__.__name__} ({self.id}): Slice {self.slice_index}: {self.tag}: ({self.x}, {self.y})>'
 
 
 class ChainLabelElement(LabelElement):
@@ -570,7 +585,8 @@ class ChainLabelElement(LabelElement):
 
     def __repr__(self) -> str:
         """Return string representation for Chain Label Element."""
-        return '<{}: {}: {} {}>'.format(self.__class__.__name__, self.id, len(self.points), self.loop)
+        return f'<{self.__class__.__name__} ({self.id}): Slice {self.slice_index}: {self.tag}:' \
+               f' {len(self.points)} Points: Loop={self.loop}>'
 
 
 class ChainLabelElementPoint(Base):
@@ -603,7 +619,7 @@ class ChainLabelElementPoint(Base):
 
     def __repr__(self) -> str:
         """Return string representation for Chain Label Element Point."""
-        return '<{}: {}: {} {}>'.format(self.__class__.__name__, self.id, self.x, self.y)
+        return f'<{self.__class__.__name__} ({self.id}): ({self.x}, {self.y}): Order={self.order}>'
 
 
 ###########################
@@ -639,7 +655,8 @@ class Action(Base):
 
     def __repr__(self) -> str:
         """Return string representation for Action."""
-        return '<{}: {}: "{}">'.format(self.__class__.__name__, self.id, self.name)
+        return f'<{self.__class__.__name__} ({self.id}): {self.name}: {self.action_type}: {self.label_tag}:' \
+               f' {len(self.responses)} Responses'
 
 
 class Survey(Action):
@@ -664,6 +681,11 @@ class Survey(Action):
         """
         super(Survey, self).__init__(name)
         self.initial_element_key = initial_element_key
+
+    def __repr__(self) -> str:
+        """Return string representation for Survey."""
+        return f'<{self.__class__.__name__} ({self.id}): {self.name}: {self.action_type}: {self.label_tag}:' \
+               f' {len(self.elements)} Elements: {len(self.responses)} Responses: Initial={self.initial_element_key}'
 
     def get_details(self) -> Dict:
         """Return dictionary details about this Survey."""
@@ -706,6 +728,11 @@ class SurveyElement(Base):
         self.key = key
         self.instant_next_element = instant_next_element
 
+    def __repr__(self) -> str:
+        """Return string representation for Survey Element."""
+        return f'<{self.__class__.__name__} ({self.id}): {self.key}: {self.survey_element_type}:' \
+               f' NextInstant={self.instant_next_element}'
+
     def get_details(self) -> Dict:
         """Return dictionary details about this Element from Survey."""
         return {
@@ -742,7 +769,7 @@ class SurveySingleChoiceQuestion(SurveyElement):
 
     def __repr__(self) -> str:
         """Return string representation for SurveySingleChoiceQuestion."""
-        return '<{}: {}: "{}">'.format(self.__class__.__name__, self.id, self.title)
+        return f'<{self.__class__.__name__} ({self.id}): "{self.title}">'
 
     def get_details(self) -> Dict:
         """Return dictionary details about this Question."""
@@ -768,6 +795,10 @@ class ActionResponse(Base):
         'polymorphic_identity': 'ActionResponse',
         'polymorphic_on': action_response_type,
     }
+
+    def __repr__(self) -> str:
+        """Return string representation for Action Response."""
+        return f'<{self.__class__.__name__} ({self.id}): {self.action_response_type}: {self.action}>'
 
     def get_details(self) -> Dict:  # pylint: disable=no-self-use
         """Return dictionary details about this Action Response."""
@@ -800,10 +831,20 @@ class SurveyResponse(ActionResponse):
         self.action_id = cast(ActionID, survey_id)
         self.data = data
 
+    def __repr__(self) -> str:
+        """Return string representation for Survey Response."""
+        return f'<{self.__class__.__name__} ({self.id}): {self.action_response_type}: {self.survey}>'
+
     def get_details(self) -> Dict:
         """Return dictionary details about this Survey Response."""
         return self.data
 
+
+#############################
+#
+#  Events related to models
+#
+#############################
 
 # pylint: disable=unused-argument
 @event.listens_for(BrushLabelElement, 'before_delete')

@@ -91,7 +91,7 @@ def test_upgrade_to_doctor_role(prepare_environment: Any) -> None:
 
     # Step 3. Admin changes role for user
     payload = {'role': 'doctor'}
-    response = api_client.put('/api/v1/users/{}/role'.format(volunteer_id), data=json.dumps(payload),
+    response = api_client.put(f'/api/v1/users/{volunteer_id}/role', data=json.dumps(payload),
                               headers=get_headers(token=admin_user_token, json=True))
     assert response.status_code == 200
 
@@ -142,7 +142,7 @@ def test_ownership(prepare_environment: Any, synchronous_celery: Any) -> None:
 
     # Step 4. Send slices
     with open('tests/assets/example_scan/slice_1.dcm', 'rb') as image:
-        response = api_client.post('/api/v1/scans/{}/slices'.format(scan_id), data={
+        response = api_client.post(f'/api/v1/scans/{scan_id}/slices', data={
             'image': (image, 'slice_1.dcm'),
         }, content_type='multipart/form-data', headers=get_headers(token=admin_user_token))
     assert response.status_code == 201
@@ -160,7 +160,7 @@ def test_ownership(prepare_environment: Any, synchronous_celery: Any) -> None:
         }],
         'labeling_time': 12.34,
     }
-    response = api_client.post('/api/v1/scans/{}/FIND_NODULES/label'.format(scan_id),
+    response = api_client.post(f'/api/v1/scans/{scan_id}/FIND_NODULES/label',
                                data={'label': json.dumps(payload)},
                                headers=get_headers(token=admin_user_token, multipart=True))
     assert response.status_code == 201

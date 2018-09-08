@@ -49,7 +49,7 @@ def test_basic_flow(prepare_environment: Any, synchronous_celery: Any) -> None:
 
     # Step 4. Send slices
     with open('tests/assets/example_scan/slice_1.dcm', 'rb') as image:
-        response = api_client.post('/api/v1/scans/{}/slices'.format(scan_id), data={
+        response = api_client.post(f'/api/v1/scans/{scan_id}/slices', data={
             'image': (image, 'slice_1.dcm'),
         }, content_type='multipart/form-data', headers=get_headers(token=user_token))
     assert response.status_code == 201
@@ -60,7 +60,7 @@ def test_basic_flow(prepare_environment: Any, synchronous_celery: Any) -> None:
     assert len(slice_id) >= 1
 
     # Step 5. Get random scan
-    response = api_client.get('/api/v1/scans/random?task={}'.format(task_key),
+    response = api_client.get(f'/api/v1/scans/random?task={task_key}',
                               headers=get_headers(token=user_token))
     assert response.status_code == 200
     json_response = json.loads(response.data)
@@ -93,7 +93,7 @@ def test_basic_flow(prepare_environment: Any, synchronous_celery: Any) -> None:
         }],
         'labeling_time': 12.34,
     }
-    response = api_client.post('/api/v1/scans/{}/MARK_KIDNEYS/label'.format(scan_id),
+    response = api_client.post(f'/api/v1/scans/{scan_id}/MARK_KIDNEYS/label',
                                data={'label': json.dumps(payload)},
                                headers=get_headers(token=user_token, multipart=True))
     assert response.status_code == 201
@@ -124,7 +124,7 @@ def test_basic_flow(prepare_environment: Any, synchronous_celery: Any) -> None:
 
     # # Step 9. Verification of labels will be disabled until mechanism for validation of label elements is introduced
     # payload = {'status': LabelStatus.VALID.value}
-    # response = api_client.put('/api/v1/labels/{}/status'.format(label_id), data=json.dumps(payload),
+    # response = api_client.put(f'/api/v1/labels/{label_id}/status', data=json.dumps(payload),
     #                           headers=get_headers(token=user_token, json=True))
     # assert response.status_code == 200
     # json_response = json.loads(response.data)

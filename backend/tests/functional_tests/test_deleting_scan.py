@@ -42,7 +42,7 @@ def test_delete_scan_without_slices(prepare_environment: Any, synchronous_celery
     assert len(scan_id) >= 1
 
     # Step 3. Get scan
-    response = api_client.get('/api/v1/scans/{}'.format(scan_id),
+    response = api_client.get(f'/api/v1/scans/{scan_id}',
                               headers=get_headers(token=user_token))
     assert response.status_code == 200
     json_response = json.loads(response.data)
@@ -54,7 +54,7 @@ def test_delete_scan_without_slices(prepare_environment: Any, synchronous_celery
     ScansRepository.delete_scan_by_id(scan_id)
 
     # Step 5. Check that scan has been deleted
-    response = api_client.get('/api/v1/scans/{}'.format(scan_id),
+    response = api_client.get(f'/api/v1/scans/{scan_id}',
                               headers=get_headers(token=user_token))
     assert response.status_code == 404
 
@@ -82,7 +82,7 @@ def test_delete_scan_with_slices(prepare_environment: Any, synchronous_celery: A
 
     # Step 3. Send slices
     with open('tests/assets/example_scan/slice_1.dcm', 'rb') as image:
-        response = api_client.post('/api/v1/scans/{}/slices'.format(scan_id), data={
+        response = api_client.post(f'/api/v1/scans/{scan_id}/slices', data={
             'image': (image, 'slice_1.dcm'),
         }, content_type='multipart/form-data', headers=get_headers(token=user_token))
         assert response.status_code == 201
@@ -93,7 +93,7 @@ def test_delete_scan_with_slices(prepare_environment: Any, synchronous_celery: A
     assert len(slice_id) >= 1
 
     # Step 4. Get scan
-    response = api_client.get('/api/v1/scans/{}'.format(scan_id),
+    response = api_client.get(f'/api/v1/scans/{scan_id}',
                               headers=get_headers(token=user_token))
     assert response.status_code == 200
     json_response = json.loads(response.data)
@@ -107,7 +107,7 @@ def test_delete_scan_with_slices(prepare_environment: Any, synchronous_celery: A
     ScansRepository.delete_scan_by_id(scan_id)
 
     # Step 6. Check that scan has been deleted
-    response = api_client.get('/api/v1/scans/{}'.format(scan_id),
+    response = api_client.get(f'/api/v1/scans/{scan_id}',
                               headers=get_headers(token=user_token))
     assert response.status_code == 404
 
@@ -143,7 +143,7 @@ def test_delete_scan_with_labels(prepare_environment: Any, synchronous_celery: A
 
     # Step 3. Send slices
     with open('tests/assets/example_scan/slice_1.dcm', 'rb') as image:
-        response = api_client.post('/api/v1/scans/{}/slices'.format(scan_id), data={
+        response = api_client.post(f'/api/v1/scans/{scan_id}/slices', data={
             'image': (image, 'slice_1.dcm'),
         }, content_type='multipart/form-data', headers=get_headers(token=user_token))
         assert response.status_code == 201
@@ -154,7 +154,7 @@ def test_delete_scan_with_labels(prepare_environment: Any, synchronous_celery: A
     assert len(slice_id) >= 1
 
     # Step 4. Get scan
-    response = api_client.get('/api/v1/scans/{}'.format(scan_id),
+    response = api_client.get(f'/api/v1/scans/{scan_id}',
                               headers=get_headers(token=user_token))
     assert response.status_code == 200
     json_response = json.loads(response.data)
@@ -220,7 +220,7 @@ def test_delete_scan_with_labels(prepare_environment: Any, synchronous_celery: A
             'label': json.dumps(payload),
             'SLICE_1': (image, 'slice_1'),
         }
-        response = api_client.post('/api/v1/scans/{}/MARK_KIDNEYS/label'.format(scan_id), data=data,
+        response = api_client.post(f'/api/v1/scans/{scan_id}/MARK_KIDNEYS/label', data=data,
                                    headers=get_headers(token=user_token, multipart=True))
     assert response.status_code == 201
     json_response = json.loads(response.data)
@@ -242,7 +242,7 @@ def test_delete_scan_with_labels(prepare_environment: Any, synchronous_celery: A
     ScansRepository.delete_scan_by_id(scan_id)
 
     # Step 8. Check that scan has been deleted
-    response = api_client.get('/api/v1/scans/{}'.format(scan_id),
+    response = api_client.get(f'/api/v1/scans/{scan_id}',
                               headers=get_headers(token=user_token))
     assert response.status_code == 404
 
@@ -259,7 +259,7 @@ def test_delete_scan_with_labels(prepare_environment: Any, synchronous_celery: A
         ProcessedSlice.get(id=slice_id)
 
     # Step 12. Check that labels has been deleted
-    response = api_client.get('/api/v1/labels/{}'.format(label_id),
+    response = api_client.get(f'/api/v1/labels/{label_id}',
                               headers=get_headers(token=user_token))
     assert response.status_code == 404
 

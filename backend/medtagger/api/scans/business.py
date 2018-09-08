@@ -81,7 +81,7 @@ def get_random_scan(task_key: str) -> Scan:
     user = get_current_user()
     task = TasksRepository.get_task_by_key(task_key)
     if not task:
-        raise InvalidArgumentsException('Task key {} is invalid!'.format(task_key))
+        raise InvalidArgumentsException(f'Task key {task_key} is invalid!')
     scan = ScansRepository.get_random_scan(task, user)
     if not scan:
         raise NotFoundException('Could not find any Scan for this task!')
@@ -119,9 +119,9 @@ def _validate_tool(elements: List[Dict]) -> None:
     """Validate if the tool for given Label Element is available for given tag."""
     for label_element in elements:
         tag = _get_label_tag(label_element['tag'])
-        if label_element['tool'] not in {tool.name for tool in tag.tools}:
-            raise InvalidArgumentsException('{} tool is not available for {} tag'.format(
-                label_element['tool'], tag.name))
+        tool = label_element['tool']
+        if tool not in {tool.name for tool in tag.tools}:
+            raise InvalidArgumentsException(f'{tool} Tool is not available for {tag.name} Tag')
 
 
 def _validate_files(files: Dict[str, bytes]) -> None:
@@ -130,9 +130,9 @@ def _validate_files(files: Dict[str, bytes]) -> None:
         try:
             image = Image.open(io.BytesIO(file_data))
             image.verify()
-            assert image.format == 'PNG'
+            assert image.format == 'PNG', 'Invalid Image format!'
         except Exception:
-            raise InvalidArgumentsException('Type of file "{}" is not supported!'.format(file_name))
+            raise InvalidArgumentsException(f'Type of file "{file_name}" is not supported!')
 
 
 def _validate_label_elements(elements: List[Dict], files: Dict[str, bytes]) -> None:
@@ -143,8 +143,9 @@ def _validate_label_elements(elements: List[Dict], files: Dict[str, bytes]) -> N
             try:
                 files[label_element['image_key']]
             except KeyError:
-                message = 'Request does not have field named {} that could contain the image!'
-                raise InvalidArgumentsException(message.format(label_element['image_key']))
+                image_key = label_element['image_key']
+                message = f'Request does not have field named {image_key} that could contain the image!'
+                raise InvalidArgumentsException(message)
 
 
 def add_label(scan_id: ScanID, task_key: str, elements: List[Dict],   # pylint: disable-msg=too-many-arguments
@@ -273,7 +274,7 @@ def get_scan(scan_id: ScanID) -> Scan:
     try:
         return ScansRepository.get_scan_by_id(scan_id)
     except NoResultFound:
-        raise NotFoundException('Scan "{}" not found.'.format(scan_id))
+        raise NotFoundException(f'Scan "{scan_id}" not found.')
 
 
 def skip_scan(scan_id: ScanID) -> bool:
@@ -283,5 +284,5 @@ def skip_scan(scan_id: ScanID) -> bool:
     :return: boolean information whether the Scan was skipped or not
     """
     if not ScansRepository.increase_skip_count_of_a_scan(scan_id):
-        raise NotFoundException('Scan "{}" not found.'.format(scan_id))
+        raise NotFoundException(f'Scan "{scan_id}" not found.')
     return True

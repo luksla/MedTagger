@@ -37,7 +37,7 @@ def test_scan_upload_and_conversion(prepare_environment: Any, synchronous_celery
     # Step 3. Send Slices
     for file in glob.glob('tests/assets/example_scan/*.dcm'):
         with open(file, 'rb') as image:
-            response = api_client.post('/api/v1/scans/{}/slices'.format(scan_id), data={
+            response = api_client.post(f'/api/v1/scans/{scan_id}/slices', data={
                 'image': (image, 'slice_1.dcm'),
             }, headers=get_headers(token=user_token, multipart=True))
             assert response.status_code == 201
@@ -93,7 +93,7 @@ def test_scan_upload_with_retrying(fixture_problems_with_storage: Any, prepare_e
         with open(file, 'rb') as image:
             # First request to the API will fail with unknown error due to Storage issues
             fixture_problems_with_storage.side_effect = WriteTimeout('Internal Storage Error', write_type=0)
-            response = api_client.post('/api/v1/scans/{}/slices'.format(scan_id), data={
+            response = api_client.post(f'/api/v1/scans/{scan_id}/slices', data={
                 'image': (image, 'slice_1.dcm'),
             }, headers=get_headers(token=user_token, multipart=True))
             assert response.status_code == 500
@@ -102,7 +102,7 @@ def test_scan_upload_with_retrying(fixture_problems_with_storage: Any, prepare_e
             # As request will close the image file, we've got to open it again
             with open(file, 'rb') as image:
                 fixture_problems_with_storage.side_effect = None
-                response = api_client.post('/api/v1/scans/{}/slices'.format(scan_id), data={
+                response = api_client.post(f'/api/v1/scans/{scan_id}/slices', data={
                     'image': (image, 'slice_1.dcm'),
                 }, headers=get_headers(token=user_token, multipart=True))
                 assert response.status_code == 201

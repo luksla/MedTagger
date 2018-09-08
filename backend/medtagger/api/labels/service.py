@@ -71,7 +71,7 @@ class ChangeLabelStatus(Resource):
         try:
             status = LabelVerificationStatus[raw_status]
         except KeyError:
-            raise InvalidArgumentsException('Label Status "{}" is not available.'.format(raw_status))
+            raise InvalidArgumentsException(f'Label Status "{raw_status}" is not available.')
 
         return business.change_label_status(label_id, status)
 

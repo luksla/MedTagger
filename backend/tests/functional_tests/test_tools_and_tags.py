@@ -46,7 +46,7 @@ def test_add_label_non_existing_tag(prepare_environment: Any) -> None:
         }],
         'labeling_time': 12.34,
     }
-    response = api_client.post('/api/v1/scans/{}/MARK_KIDNEYS/label'.format(scan_id),
+    response = api_client.post(f'/api/v1/scans/{scan_id}/MARK_KIDNEYS/label',
                                data={'label': json.dumps(payload)},
                                headers=get_headers(token=user_token, multipart=True))
     assert response.status_code == 404
@@ -85,7 +85,7 @@ def test_add_label_non_supported_tool(prepare_environment: Any) -> None:
         }],
         'labeling_time': 12.34,
     }
-    response = api_client.post('/api/v1/scans/{}/MARK_KIDNEYS/label'.format(scan_id),
+    response = api_client.post(f'/api/v1/scans/{scan_id}/MARK_KIDNEYS/label',
                                data={'label': json.dumps(payload)},
                                headers=get_headers(token=user_token, multipart=True))
     assert response.status_code == 400
@@ -124,7 +124,7 @@ def test_add_label_missing_tag(prepare_environment: Any) -> None:
         }],
         'labeling_time': 12.34,
     }
-    response = api_client.post('/api/v1/scans/{}/MARK_KIDNEYS/label'.format(scan_id),
+    response = api_client.post(f'/api/v1/scans/{scan_id}/MARK_KIDNEYS/label',
                                data={'label': json.dumps(payload)},
                                headers=get_headers(token=user_token, multipart=True))
     assert response.status_code == 400
@@ -163,7 +163,7 @@ def test_add_label_missing_tool(prepare_environment: Any) -> None:
         }],
         'labeling_time': 12.34,
     }
-    response = api_client.post('/api/v1/scans/{}/MARK_KIDNEYS/label'.format(scan_id),
+    response = api_client.post(f'/api/v1/scans/{scan_id}/MARK_KIDNEYS/label',
                                data={'label': json.dumps(payload)},
                                headers=get_headers(token=user_token, multipart=True))
     assert response.status_code == 400
@@ -203,7 +203,7 @@ def test_add_label_wrong_tool_for_tag(prepare_environment: Any) -> None:
         }],
         'labeling_time': 12.34,
     }
-    response = api_client.post('/api/v1/scans/{}/MARK_KIDNEYS/label'.format(scan_id),
+    response = api_client.post(f'/api/v1/scans/{scan_id}/MARK_KIDNEYS/label',
                                data={'label': json.dumps(payload)},
                                headers=get_headers(token=user_token, multipart=True))
     assert response.status_code == 400

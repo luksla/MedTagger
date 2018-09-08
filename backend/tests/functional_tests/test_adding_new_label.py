@@ -50,7 +50,7 @@ def test_add_brush_label(prepare_environment: Any, synchronous_celery: Any) -> N
             'label': json.dumps(payload),
             'SLICE_1': (image, 'slice_1'),
         }
-        response = api_client.post('/api/v1/scans/{}/MARK_KIDNEYS/label'.format(scan_id), data=data,
+        response = api_client.post(f'/api/v1/scans/{scan_id}/MARK_KIDNEYS/label', data=data,
                                    headers=get_headers(token=user_token, multipart=True))
     assert response.status_code == 201
     json_response = json.loads(response.data)
@@ -101,7 +101,7 @@ def test_add_point_label(prepare_environment: Any, synchronous_celery: Any) -> N
     data = {
         'label': json.dumps(payload),
     }
-    response = api_client.post('/api/v1/scans/{}/MARK_KIDNEYS/label'.format(scan_id), data=data,
+    response = api_client.post(f'/api/v1/scans/{scan_id}/MARK_KIDNEYS/label', data=data,
                                headers=get_headers(token=user_token, multipart=True))
     assert response.status_code == 201
     json_response = json.loads(response.data)
@@ -161,7 +161,7 @@ def test_add_chain_label(prepare_environment: Any, synchronous_celery: Any) -> N
     data = {
         'label': json.dumps(payload),
     }
-    response = api_client.post('/api/v1/scans/{}/MARK_KIDNEYS/label'.format(scan_id), data=data,
+    response = api_client.post(f'/api/v1/scans/{scan_id}/MARK_KIDNEYS/label', data=data,
                                headers=get_headers(token=user_token, multipart=True))
     assert response.status_code == 201
     json_response = json.loads(response.data)
@@ -220,6 +220,6 @@ def test_add_chain_label_not_enough_points(prepare_environment: Any, synchronous
     data = {
         'label': json.dumps(payload),
     }
-    response = api_client.post('/api/v1/scans/{}/MARK_KIDNEYS/label'.format(scan_id), data=data,
+    response = api_client.post(f'/api/v1/scans/{scan_id}/MARK_KIDNEYS/label', data=data,
                                headers=get_headers(token=user_token, multipart=True))
     assert response.status_code == 400

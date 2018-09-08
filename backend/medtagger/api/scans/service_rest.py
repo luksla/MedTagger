@@ -35,7 +35,7 @@ class Scans(Resource):
         dataset_key = payload['dataset']
         number_of_slices = payload['number_of_slices']
         if not business.dataset_is_valid(dataset_key):
-            raise InvalidArgumentsException('Dataset "{}" is not available.'.format(dataset_key))
+            raise InvalidArgumentsException(f'Dataset "{dataset_key}" is not available.')
 
         scan = business.create_empty_scan(dataset_key, number_of_slices)
         return scan, 201

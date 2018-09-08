@@ -49,7 +49,7 @@ class Slices(Namespace):
 
         # Make sure that nobody will fetch whole scan at once. It could freeze our backend application.
         if count > self.MAX_NUMBER_OF_SLICES_PER_REQUEST:
-            message = 'Cannot return more than {} slices per request.'.format(self.MAX_NUMBER_OF_SLICES_PER_REQUEST)
+            message = f'Cannot return more than {self.MAX_NUMBER_OF_SLICES_PER_REQUEST} slices per request.'
             raise InvalidArgumentsException(message)
 
 

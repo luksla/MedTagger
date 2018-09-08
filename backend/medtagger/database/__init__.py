@@ -19,7 +19,8 @@ class MedTaggerBase:  # pylint: disable=too-few-public-methods
 
     def __repr__(self) -> str:
         """Return string representation."""
-        return '<{}: {}>'.format(self.__class__.__name__, getattr(self, 'id', '-'))
+        identifier = getattr(self, 'id', '-')
+        return f'<{self.__class__.__name__} ({identifier})>'
 
     def save(self) -> None:
         """Save the model into the database after changes."""

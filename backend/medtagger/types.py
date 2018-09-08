@@ -1,5 +1,6 @@
 """Module containing all custom types."""
-from typing import NewType, NamedTuple
+from dataclasses import dataclass
+from typing import NewType
 
 
 ScanID = NewType('ScanID', str)
@@ -10,14 +11,6 @@ LabelTagID = NewType('LabelTagID', int)
 TaskID = NewType('TaskID', int)
 PointID = NewType('PointID', str)
 
-SliceLocation = NewType('SliceLocation', float)
-SlicePosition = NamedTuple('SlicePosition', [('x', float), ('y', float), ('z', float)])
-
-LabelPosition = NamedTuple('LabelPosition', [('x', float), ('y', float), ('slice_index', int)])
-LabelShape = NamedTuple('LabelShape', [('width', float), ('height', float)])
-
-Point = NamedTuple('Point', [('x', float), ('y', float)])
-
 LabelingTime = NewType('LabelingTime', float)
 
 ActionID = NewType('ActionID', int)
@@ -26,3 +19,31 @@ SurveyElementID = NewType('SurveyElementID', int)
 SurveyElementKey = NewType('SurveyElementKey', str)
 ActionResponseID = NewType('ActionResponseID', int)
 SurveyResponseID = NewType('SurveyResponseID', ActionResponseID)
+
+SliceLocation = NewType('SliceLocation', float)
+
+
+@dataclass
+class SlicePosition:
+    x: float
+    y: float
+    z: float
+
+
+@dataclass
+class LabelPosition:
+    x: float
+    y: float
+    slice_index: int
+
+
+@dataclass
+class LabelShape:
+    width: float
+    height: float
+
+
+@dataclass
+class Point:
+    x: float
+    y: float
