@@ -13,3 +13,4 @@ pytest-cov
 pytest-mock
 jupyter
 matplotlib
+python-coveralls
