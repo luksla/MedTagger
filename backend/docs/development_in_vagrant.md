@@ -12,8 +12,8 @@ Please follow the documentation about setting up Vagrant [here](/docs/developmen
 Open three SSH connections (in separate windows) to your virtual machine and make sure that you're inside `/vagrant/backend`
  directory. Then run below command in each of the windows to prepare your development environment:
  
- ```bash
- $ . devenv.sh
+```bash
+$ . devenv.sh
 ```
  
 In the first window we'll run Celery workers which are responsible for handling difficult tasks (eg. adding and
@@ -36,4 +36,15 @@ $ make run_websocket
 ```
 
 And that's all! Everything should be fine and Swagger for our REST API should be available on
- `http://10.0.0.99:51000/api/v1`. 
+ `http://10.0.0.99:51000/api/v1`.
+
+### MedTagger YAML configuration file
+
+In the `/vagrant` directory, you will find a MedTagger configuration file `.medtagger.yml`. Feel free to modify it
+ and prepare setup for your use cases!
+
+Once you change it, please synchronize it with your setup:
+
+```bash
+$ make sync_configuration
+```

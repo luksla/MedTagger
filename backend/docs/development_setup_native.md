@@ -84,3 +84,14 @@ is currently stored in MedTagger. To do so, you can use:
 It will stop all running databases and remove volumes that are attatched to them.
 
 **WATCH OUT! Keep in mind that this will erase all data that is stored in MedTagger! Use with caution!**
+
+### MedTagger YAML configuration file
+
+In the root directory of this project, you will find a MedTagger configuration file `.medtagger.yml`. Feel free
+ to modify it and prepare setup for your use cases!
+
+Once you change it, please synchronize it with your setup:
+
+```bash
+$ make sync_configuration
+```

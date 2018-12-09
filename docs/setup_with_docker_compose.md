@@ -23,6 +23,16 @@ $ docker-compose --version
 docker-compose version 1.17.1, build 6d101fb
 ```
 
+### Prepare MedTagger YAML configuration
+
+Before running setup with Docker Compose, prepare a configuration for MedTagger using example file:
+
+```bash
+$ cp .example.medtagger.yml .medtagger.yml
+```
+
+Feel free to modify it as you want and setup MedTagger for your use case!
+
 ### How to setup whole MedTagger?
 
 To run whole MedTagger (with all dependencies) using Docker Compose, you can just execute `up` command like this:
