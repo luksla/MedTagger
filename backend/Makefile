@@ -42,6 +42,9 @@ install_dev_packages:
 # Running MedTagger
 #
 
+sync_configuration:
+	PYTHONPATH=`pwd` $(PYTHON) scripts/sync_configuration.py
+
 run_rest:
 	PYTHONPATH=`pwd` $(PYTHON) medtagger/api/rest.py
 

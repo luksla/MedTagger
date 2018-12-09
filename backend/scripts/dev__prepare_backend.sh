@@ -9,7 +9,7 @@ echo "Apply database fixtures..."
 python3.7 medtagger/database/fixtures.py
 
 echo "Configuration synchronization..."
-cp -n .example.medtagger.yml .medtagger.yml || :
+cp -n ../.example.medtagger.yml .medtagger.yml || :
 if [ -z "$1" ]; then
     python3.7 scripts/sync_configuration.py
 else

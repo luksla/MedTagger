@@ -18,7 +18,7 @@ from medtagger.types import TaskID
 logging.config.fileConfig('logging.conf')
 logger = logging.getLogger(__name__)
 
-DEFAULT_CONFIGURATION_FILE_NAME = '.medtagger.yml'
+DEFAULT_CONFIGURATION_FILE_NAME = '../.medtagger.yml'
 
 
 def sync_configuration(configuration: Dict) -> None:

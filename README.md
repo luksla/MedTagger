@@ -64,9 +64,11 @@ Then follow up with our [documentation](/docs). Default development account is:
 
 ### Dockerized environment
 
-MedTagger can be set up easily with Docker-Compose:
+MedTagger can be set up easily with Docker-Compose. Make sure to prepare `.medtagger.yml`, which is a configration
+ for whole platform:
 
 ```bash
+$ cp .example.medtagger.yml .medtagger.yml
 $ docker-compose up
 ```
 
