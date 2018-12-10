@@ -4,7 +4,8 @@ echo "Installing all APT packages..."
 apt install -y make
 if [ ! -e /usr/bin/python3.7 ]
 then
-    add-apt-repository ppa:jonathonf/python-3.7
+    # add-apt-repository ppa:jonathonf/python-3.7   caused problems with vagrant set up
+    add-apt-repository ppa:deadsnakes/ppa
     apt-get update
     apt install -y python3.7
     apt install -y python3.7-dev

@@ -1,15 +1,16 @@
 """Module responsible for definition of Scans service available via HTTP REST API."""
 import json
 from typing import Any
+from io import BytesIO
 
-from flask import request
+from flask import request, send_file
 from flask_restplus import Resource
 from jsonschema import validate, ValidationError, Draft4Validator
 from jsonschema.exceptions import best_match
 
 from medtagger.types import ScanID
 from medtagger.api import api
-from medtagger.api.exceptions import InvalidArgumentsException
+from medtagger.api.exceptions import InvalidArgumentsException, NotFoundException
 from medtagger.api.scans import business, serializers
 from medtagger.api.security import login_required, role_required, require_one_of_roles
 from medtagger.api.scans.serializers import elements_schema
@@ -19,7 +20,7 @@ scans_ns = api.namespace('scans', 'Methods related with scans')
 
 @scans_ns.route('/')
 class Scans(Resource):
-    """Endpoint that can create new scan."""
+    """Endpoint that can return scans and create new scan."""
 
     @staticmethod
     @login_required
@@ -39,6 +40,22 @@ class Scans(Resource):
 
         scan = business.create_empty_scan(dataset_key, number_of_slices)
         return scan, 201
+
+    @staticmethod
+    @login_required
+    @role_required('doctor', 'admin')
+    @scans_ns.expect(serializers.args__scans)
+    @scans_ns.marshal_with(serializers.out__scan)
+    @scans_ns.doc(security='token')
+    @scans_ns.doc(description='Returns all scans. Optionally returns all scans from given dataset only.')
+    @scans_ns.doc(responses={200: 'Success', 400: 'Invalid arguments', 404: 'No Scans available'})
+    def get() -> Any:
+        """Return scans."""
+        args = serializers.args__scans.parse_args(request)
+        dataset_key = args.dataset
+        if dataset_key:
+            return business.get_scans_from_dataset(dataset_key)
+        return business.get_all_scans()
 
 
 @scans_ns.route('/random')
@@ -163,3 +180,59 @@ class ScanSlices(Resource):
         image_data = image.read()
         new_slice = business.add_new_slice(scan_id, image_data)
         return new_slice, 201
+
+
+@scans_ns.route('/<string:scan_id>/slices/<int:slice_index>/original_image')
+@scans_ns.param('scan_id', 'Scan identifier')
+@scans_ns.param('scan_id', 'Index of Slice in Scan')
+class ScanSlicesOriginalImage(Resource):
+    """Endpoint that allows for downloading original image of Slice."""
+
+    @staticmethod
+    @login_required
+    @role_required('doctor', 'admin')
+    @scans_ns.doc(security='token')
+    @scans_ns.doc(description='Returns Slice\'s original image.')
+    @scans_ns.doc(responses={200: 'Success', 404: 'Could not find Slice'})
+    def get(scan_id: ScanID, slice_index: int) -> Any:
+        """Return Slice's original image."""
+        slices = business.get_original_slices_for_scan(scan_id, slice_index, 1)
+        _slice = next(slices, None)
+        if not slice:
+            raise NotFoundException('Slice not found.')
+        image = _slice[1]
+        filename = '{}_{}.dcm'.format(scan_id, slice_index)
+        return send_file(
+            BytesIO(image),
+            mimetype='application/dicom',
+            as_attachment=True,
+            attachment_filename=filename
+        )
+
+
+@scans_ns.route('/<string:scan_id>/slices/<int:slice_index>/brush_label_element_image')
+@scans_ns.param('scan_id', 'Scan identifier')
+@scans_ns.param('scan_id', 'Index of Slice in Scan')
+class ScanSlicesBrushLabelElement(Resource):
+    """Endpoint that allows for downloading BrushLabelElement image related to Slice."""
+
+    @staticmethod
+    @login_required
+    @role_required('doctor', 'admin')
+    @scans_ns.doc(security='token')
+    @scans_ns.doc(description='Returns BrushLabelElement image related to Slice.')
+    @scans_ns.doc(responses={200: 'Success', 400: 'Invalid arguments', 404: 'Could not find BrushLabelElement'})
+    def get(scan_id: ScanID, slice_index: int) -> Any:
+        """Return BrushLabelElement image related to Slice."""
+        args = serializers.args__brush_label_element.parse_args(request)
+        label_tag_key = args.label_tag
+        user_email = args.user
+
+        _, image = business.get_brush_label_element(scan_id, slice_index, label_tag_key, user_email)
+        filename = '{}_{}_{}.png'.format(scan_id, slice_index, label_tag_key)
+        return send_file(
+            BytesIO(image),
+            mimetype='image/png',
+            as_attachment=True,
+            attachment_filename=filename
+        )

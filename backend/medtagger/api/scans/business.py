@@ -11,7 +11,7 @@ from PIL import Image
 from medtagger.api.utils import get_current_user
 from medtagger.api.exceptions import NotFoundException, InvalidArgumentsException
 from medtagger.exceptions import InternalErrorException
-from medtagger.database.models import Scan, Slice, Label, LabelTag, SliceOrientation, BrushLabelElement
+from medtagger.database.models import Scan, Slice, Label, LabelTag, SliceOrientation, BrushLabelElement, LabelElement
 from medtagger.definitions import LabelTool
 from medtagger.repositories import (
     labels as LabelsRepository,
@@ -20,6 +20,7 @@ from medtagger.repositories import (
     scans as ScansRepository,
     datasets as DatasetsRepository,
     tasks as TasksRepository,
+    users as UsersRepository,
 )
 from medtagger.storage.models import BrushLabelElement as StorageBrushLabelElement
 from medtagger.workers.storage import parse_dicom_and_update_slice
@@ -53,6 +54,30 @@ def create_empty_scan(dataset_key: str, declared_number_of_slices: int) -> Scan:
     user = get_current_user()
     dataset = DatasetsRepository.get_dataset_by_key(dataset_key)
     return ScansRepository.add_new_scan(dataset, declared_number_of_slices, user)
+
+
+def get_all_scans() -> List[Scan]:
+    """Fetch all scans from database.
+
+    :return: list of Scans
+    """
+    return ScansRepository.get_all_scans()
+
+
+def get_scans_from_dataset(dataset_key: str) -> List[Scan]:
+    """Fetch scans from dataset with given key.
+
+    :return: list of Scans
+    """
+    dataset = DatasetsRepository.get_dataset_by_key(dataset_key)
+    if not dataset:
+        raise InvalidArgumentsException('Dataset "{}" is not available.'.format(dataset_key))
+
+    scans = ScansRepository.get_scans_from_dataset(dataset)
+    if not scans:
+        raise NotFoundException('Could not find Scans for this dataset!')
+
+    return scans
 
 
 def get_random_scan(task_key: str) -> Scan:
@@ -90,6 +115,22 @@ def get_slices_for_scan(scan_id: ScanID, begin: int, count: int,
     slices = SlicesRepository.get_slices_by_scan_id(scan_id, orientation=orientation)
     for _slice in slices[begin:begin + count]:
         image = SlicesRepository.get_slice_converted_image(_slice.id)
+        yield _slice, image
+
+
+def get_original_slices_for_scan(scan_id: ScanID, begin: int, count: int,
+                        orientation: SliceOrientation = SliceOrientation.Z) -> Iterable[Tuple[Slice, bytes]]:
+    """Fetch multiple original slices for given scan.
+
+    :param scan_id: ID of a given scan
+    :param begin: first slice index (included)
+    :param count: number of slices that will be returned
+    :param orientation: orientation for Slices (by default set to Z axis)
+    :return: generator for Slices
+    """
+    slices = SlicesRepository.get_slices_by_scan_id(scan_id, orientation=orientation)
+    for _slice in slices[begin:begin + count]:
+        image = SlicesRepository.get_slice_original_image(_slice.id)
         yield _slice, image
 
 
@@ -298,3 +339,36 @@ def skip_scan(scan_id: ScanID) -> bool:
     if not ScansRepository.increase_skip_count_of_a_scan(scan_id):
         raise NotFoundException('Scan "{}" not found.'.format(scan_id))
     return True
+
+
+def get_brush_label_element(scan_id: ScanID, slice_index: int,
+                            label_tag_key: str, user_email: str) -> Tuple[BrushLabelElement, bytes]:
+    """Fetch Brush Label Element of given Slice.
+
+    :param scan_id: ID of a given Scan
+    :param slice_index: Index of Slice in Scan
+    :param label_tag_key: Key of Label Tag related to Brush Label Element
+    :param user_email: Email of User that created Label that Brush Label Element is part of
+    :return: Brush Label Element and its image
+    """
+    label_tag = LabelTagsRepository.get_label_tag_by_key(label_tag_key)
+    if not label_tag:
+        raise InvalidArgumentsException('Label Tag {} is invalid!'.format(label_tag_key))
+
+    user = UsersRepository.get_user_by_email(user_email)
+    if not user:
+        raise InvalidArgumentsException('User {} is invalid!'.format(user_email))
+
+    label = LabelsRepository.get_label_by_scan_id_and_task_id_and_owner_id(
+                scan_id, label_tag.task_id, user.id)
+    if not label:
+        raise NotFoundException('Label not found.')
+
+    label_elements = [element for element in label.elements if element.slice_index == slice_index]
+    brush_label_elements = [element for element in label_elements if element.tool == LabelTool.BRUSH]
+    if not brush_label_elements:
+        raise NotFoundException('Label element not found.')
+
+    brush_label_element = brush_label_elements[0]
+    image = LabelsRepository.get_brush_label_element(brush_label_element.id).image
+    return brush_label_element, image

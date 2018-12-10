@@ -19,6 +19,13 @@ def get_scan_by_id(scan_id: ScanID) -> Scan:
     return Scan.query.filter(Scan.id == scan_id).one()
 
 
+def get_scans_from_dataset(dataset: Dataset) -> List[Scan]:
+    """Fetch Scans from Dataset with given key."""
+    query = Scan.query.join(Dataset)
+    query = query.filter(Dataset.key == dataset.key)
+    return query.all()
+
+
 def get_random_scan(task: Task = None, user: User = None) -> Scan:
     """Fetch random Scan from database.
 

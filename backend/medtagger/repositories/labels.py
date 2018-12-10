@@ -8,7 +8,7 @@ from medtagger.database.models import Label, LabelTag, User, RectangularLabelEle
     PointLabelElement, ChainLabelElement, ChainLabelElementPoint, Task, Scan
 from medtagger.definitions import LabelVerificationStatus
 from medtagger.storage.models import BrushLabelElement as BrushLabelElementStorage
-from medtagger.types import LabelID, LabelPosition, LabelShape, LabelElementID, ScanID, LabelingTime, Point
+from medtagger.types import LabelID, LabelPosition, LabelShape, LabelElementID, ScanID, LabelingTime, Point, TaskID
 
 
 def get_all_labels() -> List[Label]:
@@ -20,6 +20,21 @@ def get_label_by_id(label_id: LabelID) -> Label:
     """Fetch Label from database."""
     return Label.query.filter(Label.id == label_id).one()
 
+
+def get_label_by_scan_id_and_task_id_and_owner_id(scan_id: ScanID, task_id: TaskID,
+                                                  owner_id: User) -> Label:
+    """Fetch Label from database.
+    
+    :param scan_id: ID of a given Scan
+    :param task_id: ID of a given Task
+    :param owner_id: ID of a given User
+    :return: Label object
+    """
+    query = Label.query
+    query = query.filter(Label.scan_id == scan_id)
+    query = query.filter(Label.task_id == task_id)
+    query = query.filter(Label.owner_id == owner_id)
+    return query.first()
 
 def get_random_label(status: LabelVerificationStatus = None) -> Label:
     """Fetch random Label from database.
@@ -34,6 +49,13 @@ def get_random_label(status: LabelVerificationStatus = None) -> Label:
     query = query.order_by(func.random())
     return query.first()
 
+def get_brush_label_element(brush_label_element_id: str) -> BrushLabelElement:
+    """Return Brush Label Element.
+
+    :param brush_label_element_id: ID of Brush Label Element
+    :return: Brush Label Element
+    """
+    return BrushLabelElementStorage.get(id=brush_label_element_id)
 
 def get_predefined_label_for_scan_in_task(scan: Scan, task: Task) -> Optional[Label]:
     """Return Predefined Label for Scan in Task.

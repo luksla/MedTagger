@@ -126,3 +126,10 @@ out__new_slice = api.model('Newly created Slice model', {
 
 args__random_scan = reqparse.RequestParser()
 args__random_scan.add_argument('task', type=str, required=True, help='Task\'s key')
+
+args__scans = reqparse.RequestParser()
+args__scans.add_argument('dataset', type=str, required=False, help='Dataset\'s key')
+
+args__brush_label_element = reqparse.RequestParser()
+args__brush_label_element.add_argument('label_tag', type=str, required=True, help='Label tag\'s key')
+args__brush_label_element.add_argument('user', type=str, required=True, help='User\'s email')
